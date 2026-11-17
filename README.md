@@ -26,7 +26,7 @@
 Needs Python 3.9 or newer.
 
 ```bash
-git clone https://github.com/chamu262/nova-os.git && cd nova-os
+git clone https://github.com/chamu262/nova-os-demo.git && cd nova-os-demo
 python3 -m nova
 ```
 
