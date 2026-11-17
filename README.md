@@ -80,6 +80,8 @@ Tip: `http://127.0.0.1:7878/?ask=Morning%20brief|How%20did%20I%20sleep%3F` asks 
 
 ## Project layout
 
+Each folder has its own README: [nova/](nova/README.md), [nova/static/](nova/static/README.md), [tests/](tests/README.md), [docs/](docs/README.md), [.github/](.github/README.md).
+
 ```
 nova/
   agents.py      the crew: names, roles, keywords, personas
