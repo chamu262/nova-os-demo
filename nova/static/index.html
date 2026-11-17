@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nova OS</title>
+<style>
+:root{--bg:#0c0d16;--panel:#151726;--line:#262a40;--text:#e8e9f3;--muted:#8a8fa8;--accent:#7c5cff}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(1200px 600px at 20% -10%,#1d1940 0,var(--bg) 60%);color:var(--text);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;min-height:100vh}
+header{display:flex;align-items:center;gap:12px;padding:16px 24px;border-bottom:1px solid var(--line)}
+.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#7c5cff,#38bdf8);display:grid;place-items:center;font-weight:700}
+h1{font-size:18px;margin:0}.sub{color:var(--muted);font-size:13px}
+.mode{margin-left:auto;font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+main{display:grid;grid-template-columns:260px 1fr 300px;gap:16px;padding:16px 24px;max-width:1400px;margin:0 auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px}
+.card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 10px}
+.agent{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer}
+.agent:hover{background:#1c1f33}.agent.active{background:#211d3d;outline:1px solid #3b3270}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#0c0d16;flex:none}
+.agent b{display:block;font-size:14px}.agent span{font-size:12px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:#3a3f5c;margin-left:auto}.dot.busy{background:#22c55e;box-shadow:0 0 8px #22c55e}
+.chat{display:flex;flex-direction:column;height:calc(100vh - 100px)}
+#log{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px;padding-right:4px}
+.msg{max-width:85%;padding:10px 14px;border-radius:14px;white-space:pre-wrap}
+.me{align-self:flex-end;background:var(--accent);border-bottom-right-radius:4px}
+.bot{align-self:flex-start;background:#1c1f33;border:1px solid var(--line);border-bottom-left-radius:4px}
+.who{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-bottom:4px}.who .av{width:22px;height:22px;font-size:11px}
+.route{align-self:center;font-size:12px;color:var(--muted);background:#12142080;border:1px dashed var(--line);padding:4px 10px;border-radius:999px}
+form{display:flex;gap:8px;margin-top:12px}input{flex:1;background:#0f1120;border:1px solid var(--line);color:var(--text);padding:12px 14px;border-radius:12px;font:inherit}
+button{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:0 16px;font:inherit;cursor:pointer}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}.chip{background:#1c1f33;border:1px solid var(--line);color:var(--text);padding:5px 10px;border-radius:999px;font-size:12px;cursor:pointer}
+.dec{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:8px;font-size:13px}
+.dec .row{display:flex;gap:6px;margin-top:8px}.dec button{padding:5px 10px;font-size:12px}.dec .no{background:#2a2e48}
+.dec.done{opacity:.55}.tag{font-size:11px;color:var(--muted)}
+.act{font-size:12px;color:var(--muted);padding:4px 0;border-bottom:1px solid #1d2035}.act b{color:var(--text);font-weight:600}
+.day{font-size:13px;padding:3px 0}.day span{color:var(--muted);display:inline-block;width:48px}
+aside{display:flex;flex-direction:column;gap:16px}
+main>*{min-width:0}
+@media (max-width:1000px){main{grid-template-columns:minmax(0,1fr);padding:12px 16px}header{padding:12px 16px;flex-wrap:wrap}.mode{margin-left:0}.msg{max-width:92%}.chat{height:70vh}#crew{display:flex;overflow:auto}#crew .agent span{display:none}}
+</style>
+</head>
+<body>
+<header><div class="logo">✦</div><div><h1>Nova OS</h1><div class="sub">Your personal AI team</div></div><div class="mode" id="mode">…</div></header>
+<main>
+  <aside><div class="card"><h2>The crew</h2><div id="crew"></div></div>
+    <div class="card"><h2>Today</h2><div id="today"></div></div></aside>
+  <section class="card chat"><h2>Talk to Nova Prime</h2><div id="log"></div>
+    <div class="chips" id="chips"></div>
+    <form id="f"><input id="q" placeholder="Ask anything. Nova Prime will pass it to the right person." autocomplete="off"><button>Send</button></form></section>
+  <aside><div class="card"><h2>Needs you <span id="ncount"></span></h2><div id="decs"></div></div>
+    <div class="card"><h2>Team activity</h2><div id="acts"></div></div></aside>
+</main>
+<script>
+const $=s=>document.querySelector(s);let S={agents:[]};const A=id=>S.agents.find(a=>a.id===id)||{};
+const esc=t=>t.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c])).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+const av=a=>`<div class="av" style="background:${a.color}">${a.emoji}</div>`;
+const CHIPS=["Morning brief","Any subscriptions I don't use?","What's on my calendar today?","Draft a reply to Sam","How did I sleep this week?","Is my phone backed up?"];
+async function load(){S=await (await fetch('/api/state')).json();render()}
+function render(busy){
+  $('#mode').textContent=S.mode==='claude'?'● Claude mode':'● Mock mode (no API key)';
+  $('#crew').innerHTML=S.agents.map(a=>`<div class="agent ${busy===a.id?'active':''}">${av(a)}<div><b>${a.name}</b><span>${a.role}</span></div><div class="dot ${busy===a.id?'busy':''}"></div></div>`).join('');
+  $('#today').innerHTML=S.today.map(e=>`<div class="day"><span>${e.time}</span>${e.title}</div>`).join('');
+  const w=S.decisions.filter(d=>d.status==='waiting').length;$('#ncount').textContent=w?`(${w})`:'';
+  $('#decs').innerHTML=S.decisions.slice().reverse().map(d=>`<div class="dec ${d.status!=='waiting'?'done':''}"><div class="tag">${A(d.agent).name} asks</div>${esc(d.text)}${d.status==='waiting'?`<div class="row"><button onclick="decide(${d.id},true)">Approve</button><button class="no" onclick="decide(${d.id},false)">Decline</button></div>`:`<div class="tag">✓ ${d.status}</div>`}</div>`).join('')||'<div class="tag">Nothing waiting.</div>';
+  $('#acts').innerHTML=S.activity.slice(0,8).map(x=>`<div class="act"><b>${A(x.agent).name}</b> · ${x.at}<br>${esc(x.text)}</div>`).join('')||'<div class="tag">Quiet so far.</div>';
+}
+function add(html,cls){const d=document.createElement('div');d.className=cls;d.innerHTML=html;$('#log').appendChild(d);$('#log').scrollTop=1e9}
+async function ask(text){
+  add(esc(text),'msg me');render('prime');
+  const r=await (await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})})).json();
+  const a=A(r.agent);add(`✦ ${r.agent==='prime'?'Nova Prime answers':'Nova Prime → '+a.name} · ${esc(r.reason)}`,'route');render(r.agent);
+  add(`<div class="who">${av(a)}${a.name}</div>${esc(r.reply)}`,'msg bot');
+  await load();render(r.agent);setTimeout(()=>render(),1500);
+}
+async function decide(id,ok){await fetch('/api/decisions/'+id,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({approve:ok})});load()}
+$('#f').onsubmit=e=>{e.preventDefault();const t=$('#q').value.trim();if(t){$('#q').value='';ask(t)}};
+$('#chips').innerHTML=CHIPS.map(c=>`<button type="button" class="chip">${c}</button>`).join('');
+$('#chips').onclick=e=>{if(e.target.classList.contains('chip'))ask(e.target.textContent)};
+load().then(()=>add(`<div class="who">${av(A('prime'))}Nova Prime</div>Hi! I'm Nova Prime. Tell me what you need and I'll hand it to the right teammate. Money moves always wait for your OK.`,'msg bot')).then(async()=>{
+  // ?ask=first|second runs those questions on load (handy for demos)
+  const qs=new URLSearchParams(location.search).get('ask');if(qs)for(const t of qs.split('|'))await ask(t)});
+</script>
+</body></html>
