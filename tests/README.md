@@ -6,7 +6,7 @@ Run them from the repo root with:
 python3 -m unittest -v
 ```
 
-They use only the standard library, need no API key, and never call the internet. CI (`.github/workflows/ci.yml`) runs the same command on Python 3.9 and 3.12.
+They use only the standard library, need no API key, and never call the internet. CI (`.github/workflows/ci.yml`) runs the same command on Python 3.10 and 3.13.
 
 ## Files
 

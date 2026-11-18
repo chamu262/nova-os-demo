@@ -23,7 +23,7 @@
 
 ## Quick start
 
-Needs Python 3.9 or newer.
+Needs Python 3.10 or newer.
 
 ```bash
 git clone https://github.com/chamu262/nova-os-demo.git && cd nova-os-demo
